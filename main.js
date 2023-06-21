@@ -47,7 +47,8 @@ let gltfLoader = new GLTFLoader();
 gltfLoader.load("frontendbackground.glb", (img) => {
   scene.add(img.scene);
   glbScene = img.scene;
-  img.scene.position.x = 0;
+  // img.scene.position.x = 0;
+  img.scene.rotation.y = -0.9;
   console.log(glbScene);
 });
 
@@ -72,8 +73,13 @@ function animation() {
   TWEEN.update();
   // console.log(glbScene);
   if (glbScene?.rotation) {
-    console.log("rotate");
+    // console.log("rotate");
     glbScene.rotation.y += 0.01;
+    // console.log(glbScene.rotation.y);
+    if (glbScene.rotation.y > 1.75) {
+      console.log("rollIntro!!");
+      lowerScene();
+    }
   }
   requestAnimationFrame(animation);
 }
@@ -114,11 +120,9 @@ function lowerScene() {
       loaderEl.style.transform = `translateY(${pos.y}vh)`;
       let opacity = 100 - pos.y;
       loaderEl.style.opacity = `${opacity}%`;
-      // camera.rotation.set(4, 5, 2);
+      //  camera.rotation.set(4, 5, 2);
     })
     .onComplete(() => {
       document.querySelector(".app").removeChild(loaderEl);
     });
 }
-
-introCamera();
