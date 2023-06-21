@@ -47,7 +47,7 @@ let gltfLoader = new GLTFLoader();
 gltfLoader.load("frontendbackground.glb", (img) => {
   scene.add(img.scene);
   glbScene = img.scene;
-  img.scene.position.x = -3;
+  img.scene.position.x = 0;
   console.log(glbScene);
 });
 
