@@ -7,8 +7,11 @@ let loaderEl = document.querySelector(".loader");
 let mainEl = document.querySelector(".main");
 
 const renderer = new THREE.WebGLRenderer();
+const renderer2 = new THREE.WebGLRenderer();
 renderer.setSize(innerWidth, innerHeight);
 loaderEl.appendChild(renderer.domElement);
+renderer2.setSize(innerWidth, innerHeight);
+mainEl.appendChild(renderer2.domElement);
 
 // setTimeout(() => {
 //   document.querySelector(".app").removeChild(loaderEl);
@@ -16,6 +19,7 @@ loaderEl.appendChild(renderer.domElement);
 // }, 1500);
 
 const scene = new THREE.Scene();
+const scene2 = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   45,
   innerWidth / innerHeight,
@@ -27,11 +31,24 @@ camera.position.z = 20;
 camera.position.y = 8;
 console.log(camera.position);
 
-// camera.position.x = -4;
+const camera2 = new THREE.PerspectiveCamera(
+  45,
+  innerWidth / innerHeight,
+  1,
+  100,
+  0.1
+);
+camera2.position.z = 20;
+camera2.position.y = 8;
 
+// camera.position.x = -4;
+let glbScene;
 let gltfLoader = new GLTFLoader();
 gltfLoader.load("frontendbackground.glb", (img) => {
   scene.add(img.scene);
+  glbScene = img.scene;
+  img.scene.position.x = -3;
+  console.log(glbScene);
 });
 
 const oc = new OrbitControls(camera, renderer.domElement);
@@ -51,7 +68,13 @@ scene.add(movingSpotLight);
 
 function animation() {
   renderer.render(scene, camera);
+  renderer2.render(scene2, camera2);
   TWEEN.update();
+  // console.log(glbScene);
+  if (glbScene?.rotation) {
+    console.log("rotate");
+    glbScene.rotation.y += 0.01;
+  }
   requestAnimationFrame(animation);
 }
 
@@ -92,6 +115,9 @@ function lowerScene() {
       let opacity = 100 - pos.y;
       loaderEl.style.opacity = `${opacity}%`;
       // camera.rotation.set(4, 5, 2);
+    })
+    .onComplete(() => {
+      document.querySelector(".app").removeChild(loaderEl);
     });
 }
 
