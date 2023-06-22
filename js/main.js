@@ -2,24 +2,25 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import * as TWEEN from "@tweenjs/tween.js";
+import { createWalls } from "./walls.js";
 
 let loaderEl = document.querySelector(".loader");
 let mainEl = document.querySelector(".main");
+//2 individual animation frames, cancel one before starting the other.
 
 const renderer = new THREE.WebGLRenderer();
 const renderer2 = new THREE.WebGLRenderer();
 renderer.setSize(innerWidth, innerHeight);
 loaderEl.appendChild(renderer.domElement);
 renderer2.setSize(innerWidth, innerHeight);
+renderer2.shadowMap.enabled = true;
 mainEl.appendChild(renderer2.domElement);
-
-// setTimeout(() => {
-//   document.querySelector(".app").removeChild(loaderEl);
-//   mainEl.appendChild(renderer.domElement);
-// }, 1500);
 
 const scene = new THREE.Scene();
 const scene2 = new THREE.Scene();
+const gridHelper = new THREE.GridHelper(40, 40);
+scene2.add(gridHelper);
+
 const camera = new THREE.PerspectiveCamera(
   45,
   innerWidth / innerHeight,
@@ -39,7 +40,7 @@ const camera2 = new THREE.PerspectiveCamera(
   0.1
 );
 camera2.position.z = 20;
-camera2.position.y = 8;
+camera2.position.y = 2;
 
 // camera.position.x = -4;
 let glbScene;
@@ -55,6 +56,9 @@ gltfLoader.load("frontendbackground.glb", (img) => {
 const oc = new OrbitControls(camera, renderer.domElement);
 oc.update();
 
+const oc2 = new OrbitControls(camera2, renderer2.domElement);
+oc2.update();
+
 let spotLight = new THREE.SpotLight();
 spotLight.position.y = 10;
 scene.add(spotLight);
@@ -66,22 +70,36 @@ scene.add(ambientLight);
 let movingSpotLight = new THREE.SpotLight("white", 5);
 movingSpotLight.position.z = -3;
 scene.add(movingSpotLight);
+let isLowered = false;
 
-function animation() {
+let lastTime = 0;
+let dt = 0;
+function animation(time = 0) {
+  let firstAF = requestAnimationFrame(animation);
+
+  lastTime = time - lastTime;
+  dt += lastTime;
+  lastTime = time;
+
+  if (dt > 6000) {
+    document.querySelector(".app").removeChild(loaderEl);
+    galleryAnimation();
+    createWalls(scene2);
+
+    cancelAnimationFrame(firstAF);
+  }
+
   renderer.render(scene, camera);
-  renderer2.render(scene2, camera2);
   TWEEN.update();
-  // console.log(glbScene);
   if (glbScene?.rotation) {
-    // console.log("rotate");
     glbScene.rotation.y += 0.01;
-    // console.log(glbScene.rotation.y);
-    if (glbScene.rotation.y > 1.75) {
-      console.log("rollIntro!!");
+    if (glbScene.rotation.y > 1.75 && !isLowered) {
+      isLowered = true;
       lowerScene();
     }
   }
-  requestAnimationFrame(animation);
+
+  console.log("SHUTUP!!!");
 }
 
 animation();
@@ -90,39 +108,30 @@ onresize = (e) => {
   renderer.setSize(innerWidth, innerHeight);
 };
 
-let originalCoords = movingSpotLight.position;
-
-function introCamera() {
-  new TWEEN.Tween(movingSpotLight.position)
-    .to({ x: 11, y: 4, z: 3 }, 2000)
-    .start()
-    .onUpdate(() => {
-      movingSpotLight.position.x = movingSpotLight.position.x;
-      movingSpotLight.position.y = movingSpotLight.position.y;
-      movingSpotLight.position.z = movingSpotLight.position.z;
-      // movingSpotLight.rotation.y = 1.33;
-    })
-    .onComplete(() => {
-      console.log("WTF??", camera.rotation);
-
-      lowerScene();
-    });
-}
-
-// let cameraRotation = { x: -2.26, y: 1.09, z: 2.32 };
 let pos = { y: 0 };
+
 function lowerScene() {
   new TWEEN.Tween(pos)
     .to({ y: 100 }, 2000)
     .start()
     .onUpdate(() => {
-      console.log(pos.y);
+      // console.log(pos.y);
       loaderEl.style.transform = `translateY(${pos.y}vh)`;
       let opacity = 100 - pos.y;
       loaderEl.style.opacity = `${opacity}%`;
       //  camera.rotation.set(4, 5, 2);
     })
     .onComplete(() => {
-      document.querySelector(".app").removeChild(loaderEl);
+      // console.log(loaderEl);
+      // cancelAnimationFrame(firstAF);
+      // galleryAnimation();
     });
+}
+
+function galleryAnimation() {
+  renderer2.render(scene2, camera2);
+  TWEEN.update();
+  console.log("HELLO!");
+
+  requestAnimationFrame(galleryAnimation);
 }
